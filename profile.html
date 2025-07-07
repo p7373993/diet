@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필 관리 - 다이어트 챌린지 앱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 80px; /* 내비게이션 바 높이만큼 패딩 추가 */
+        }
+
+        /* 새로운 내비게이션 바 스타일 */
+        .main-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            position: fixed; /* 상단에 고정 */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .nav-left {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-link {
+            color: #2d3748;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 5px 0;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            color: #667eea;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .nav-right {
+            flex-grow: 1;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .nav-username {
+            color: #2d3748;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+
+        .nav-logout-btn {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-logout-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+        }
+
+        /* 프로필 컨테이너 스타일 */
+        .profile-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(102,126,234,0.15);
+            padding: 40px 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .profile-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 22px;
+            text-align: left;
+        }
+        .form-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 7px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            padding: 13px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.2s;
+            background: #fff;
+        }
+        .form-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .profile-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .profile-btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .form-message {
+            margin-top: 18px;
+            font-size: 1rem;
+            color: #e53e3e;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            transform: scale(1.2);
+            margin-right: 10px;
+        }
+        .checkbox-group label {
+            margin-bottom: 0;
+        }
+        .info-text {
+            font-size: 0.85em;
+            color: #718096;
+            text-align: left;
+            margin-top: -15px;
+            margin-bottom: 20px;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .main-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 15px;
+            }
+            .nav-center {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 10px;
+                width: 100%;
+                align-items: flex-start;
+            }
+            .nav-right {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .nav-username {
+                margin-right: 10px;
+            }
+            .profile-container {
+                padding: 25px 10px;
+            }
+            .profile-title {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-left">
+            <a href="index.html" class="nav-logo">DietApp</a>
+        </div>
+        <div class="nav-center">
+            <a href="index.html" class="nav-link">홈</a>
+            <a href="my-challenges.html" class="nav-link">나의 챌린지</a>
+            <a href="social-feed.html" class="nav-link">소셜 피드</a>
+            <a href="profile.html" class="nav-link active">프로필</a>
+        </div>
+        <div class="nav-right">
+            <span id="nav-username" class="nav-username"></span>
+            <button id="nav-logout-btn" class="nav-logout-btn" style="display:none;">로그아웃</button>
+            <a href="login.html" id="nav-login-link" class="nav-link" style="margin-right:10px; display:none;">로그인</a>
+            <a href="register.html" id="nav-register-link" class="nav-link" style="display:none;">회원가입</a>
+        </div>
+    </nav>
+
+    <div class="profile-container">
+        <div class="profile-title">프로필 관리</div>
+        <form id="profileForm" autocomplete="off">
+            <div class="form-group">
+                <label class="form-label" for="username">사용자명</label>
+                <input class="form-input" type="text" id="username" name="username" required maxlength="30">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">이메일</label>
+                <input class="form-input" type="email" id="email" name="email" required maxlength="50" readonly style="background-color: #f0f4f8;">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="isPublic" name="isPublic">
+                <label class="form-label" for="isPublic">내 식단 기록을 공개합니다.</label>
+            </div>
+            <p class="info-text">체크 시, 나의 식단 기록이 소셜 피드에 공유됩니다.</p>
+
+            <div class="form-group">
+                <label class="form-label" for="oldPassword">현재 비밀번호 (변경 시 필수)</label>
+                <input class="form-input" type="password" id="oldPassword" name="oldPassword" minlength="6" maxlength="32" placeholder="현재 비밀번호">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="newPassword">새 비밀번호 (변경 시 입력)</label>
+                <input class="form-input" type="password" id="newPassword" name="newPassword" minlength="6" maxlength="32" placeholder="새 비밀번호">
+            </div>
+            <button type="submit" class="profile-btn">프로필 업데이트</button>
+            <div class="form-message" id="formMessage"></div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            renderNavBar();
+            loadUserProfile();
+        });
+
+        // 공통 fetch 함수: 토큰 자동 포함, 401/403 시 자동 로그아웃
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401 || res.status === 403) {
+                alert('로그인 세션이 만료되었거나 권한이 없습니다. 다시 로그인 해주세요.');
+                localStorage.clear();
+                window.location.href = 'login.html';
+                return null;
+            }
+            return res.json();
+        }
+
+        async function loadUserProfile() {
+            const userId = localStorage.getItem('user_id');
+            if (!userId) {
+                alert('로그인이 필요합니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+            const data = await fetchWithAuth(`/api/users/${userId}`);
+            if (data && data.success) {
+                document.getElementById('username').value = data.user.username;
+                document.getElementById('email').value = data.user.email;
+                document.getElementById('isPublic').checked = data.user.is_public;
+            } else {
+                alert('프로필 정보를 불러오는데 실패했습니다: ' + (data && data.error ? data.error : '알 수 없는 오류'));
+                window.location.href = 'index.html';
+            }
+        }
+
+        document.getElementById('profileForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const userId = localStorage.getItem('user_id');
+            const msg = document.getElementById('formMessage');
+            const updateBtn = document.querySelector('.profile-btn');
+            msg.textContent = '';
+            updateBtn.disabled = true;
+            updateBtn.textContent = '업데이트 중...';
+            const username = document.getElementById('username').value.trim();
+            const isPublic = document.getElementById('isPublic').checked;
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const updateData = { username, is_public: isPublic };
+            if (newPassword) {
+                if (!oldPassword) {
+                    msg.style.color = '#e53e3e';
+                    msg.textContent = '비밀번호 변경 시 현재 비밀번호를 입력해야 합니다.';
+                    updateBtn.disabled = false;
+                    updateBtn.textContent = '프로필 업데이트';
+                    return;
+                }
+                updateData.old_password = oldPassword;
+                updateData.new_password = newPassword;
+            }
+            const data = await fetchWithAuth(`/api/users/${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+            if (data && data.success) {
+                msg.style.color = '#38a169';
+                msg.textContent = '프로필이 성공적으로 업데이트되었습니다!';
+                if (updateData.username) {
+                    localStorage.setItem('username', updateData.username);
+                    renderNavBar();
+                }
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+            } else {
+                msg.style.color = '#e53e3e';
+                msg.textContent = data && data.error ? data.error : '프로필 업데이트 실패';
+            }
+            updateBtn.disabled = false;
+            updateBtn.textContent = '프로필 업데이트';
+        };
+
+        // 내비게이션 바 렌더링 (모든 페이지에 동일하게 적용)
+        function renderNavBar() {
+            const navHtml = `
+                <nav class="main-nav">
+                    <div class="nav-left">
+                        <a href="index.html" class="nav-logo">DietApp</a>
+                    </div>
+                    <div class="nav-center">
+                        <a href="index.html" class="nav-link">홈</a>
+                        <a href="my-challenges.html" class="nav-link">나의 챌린지</a>
+                        <a href="social-feed.html" class="nav-link">소셜 피드</a>
+                        <a href="profile.html" class="nav-link active">프로필</a>
+                    </div>
+                    <div class="nav-right">
+                        <span id="nav-username" class="nav-username"></span>
+                        <button id="nav-logout-btn" class="nav-logout-btn" style="display:none;">로그아웃</button>
+                        <a href="login.html" id="nav-login-link" class="nav-link" style="margin-right:10px; display:none;">로그인</a>
+                        <a href="register.html" id="nav-register-link" class="nav-link" style="display:none;">회원가입</a>
+                    </div>
+                </nav>
+            `;
+            document.body.insertAdjacentHTML('afterbegin', navHtml);
+
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            const navUsername = document.getElementById('nav-username');
+            const navLogoutBtn = document.getElementById('nav-logout-btn');
+            const navLoginLink = document.getElementById('nav-login-link');
+            const navRegisterLink = document.getElementById('nav-register-link');
+
+            // 현재 페이지 경로에 따라 active 클래스 설정
+            const currentPath = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.main-nav .nav-link').forEach(link => {
+                const linkPath = link.getAttribute('href').split('/').pop();
+                if (linkPath === currentPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            if (token && username) {
+                navUsername.textContent = `${username}님`;
+                navUsername.style.display = 'inline';
+                navLogoutBtn.style.display = 'inline-block';
+                navLoginLink.style.display = 'none';
+                navRegisterLink.style.display = 'none';
+                navLogoutBtn.onclick = () => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user_id');
+                    localStorage.removeItem('username');
+                    window.location.href = 'login.html'; 
+                };
+            } else {
+                navUsername.style.display = 'none';
+                navLogoutBtn.style.display = 'none';
+                navLoginLink.style.display = 'inline';
+                navRegisterLink.style.display = 'inline';
+            }
+        }
+    </script>
+</body>
+</html>

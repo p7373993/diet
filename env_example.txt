@@ -1,0 +1,20 @@
+# 다이어트 챌린지 앱 환경 변수 설정 예시
+# 이 파일을 .env로 복사하고 실제 값으로 수정하세요
+
+# Flask 시크릿 키 (필수)
+SECRET_KEY=your-super-secret-key-here-change-this
+
+# 데이터베이스 URL (선택사항, 기본값: sqlite:///diet_challenge.db)
+DATABASE_URL=sqlite:///diet_challenge.db
+
+# Gemini API 키 (AI 기능 사용 시 필수)
+GEMINI_API_KEY=your-gemini-api-key-here
+
+# GPU 사용 여부 (true/false)
+GPU_ENABLED=true
+
+# 파일 업로드 최대 크기 (바이트)
+MAX_CONTENT_LENGTH=16777216
+
+# 개발 모드 (true/false)
+FLASK_ENV=development 

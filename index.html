@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나의 다이어트 대시보드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* 상단에 고정된 내비게이션 바를 위해 변경 */
+            padding-top: 80px; /* 내비게이션 바 높이만큼 패딩 추가 */
+            color: #2d3748;
+        }
+
+        /* 새로운 내비게이션 바 스타일 */
+        .main-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            position: fixed; /* 상단에 고정 */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .nav-left {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-link {
+            color: #2d3748;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 5px 0;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            color: #667eea;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .nav-right {
+            flex-grow: 1;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .nav-username {
+            color: #2d3748;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+
+        .nav-logout-btn {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-logout-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+        }
+
+        /* 기존 컨테이너 및 기타 스타일 */
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px; /* 하단 여백 추가 */
+        }
+        .title { font-size: 2.2rem; font-weight: 700; color: #2d3748; margin-bottom: 20px; }
+        .subtitle { font-size: 1.1rem; color: #718096; margin-bottom: 40px; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 40px; }
+        .card { background: #f7fafc; border-radius: 15px; padding: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+        .card-title { font-size: 1rem; color: #a0aec0; margin-bottom: 10px; font-weight: 600; }
+        .card-value { font-size: 2.2rem; font-weight: 700; color: #667eea; }
+        .progress-card { grid-column: span 2; text-align: center; }
+        .progress-ring { width: 200px; height: 200px; margin: 20px auto; }
+        .progress-ring circle { fill: none; stroke-width: 12; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .progress-ring .background { stroke: #e2e8f0; }
+        .progress-ring .progress { stroke: url(#progress-gradient); stroke-dasharray: 502.65; transition: stroke-dashoffset 1s ease-out; }
+        .progress-text { font-size: 2.5rem; font-weight: 800; fill: #4a5568; }
+        .button-container { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .btn { padding: 15px 30px; border: none; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-block; min-width: 180px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #fff; color: #667eea; border: 2px solid #667eea; }
+        .btn-secondary:hover { background: #667eea; color: #fff; }
+        .login-prompt { text-align:center; }
+        .login-prompt .title { color: white; }
+        .login-prompt .subtitle { color: rgba(255,255,255,0.8); margin-bottom: 30px; }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .main-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 15px;
+            }
+            .nav-center {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 10px;
+                width: 100%;
+                align-items: flex-start;
+            }
+            .nav-right {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .nav-username {
+                margin-right: 10px;
+            }
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .calorie-display {
+                font-size: 3rem;
+            }
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+            .progress-ring {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 1.3rem;
+            }
+            .section-title {
+                font-size: 1.3rem;
+            }
+            .challenge-card {
+                padding: 20px;
+            }
+            .challenge-title {
+                font-size: 1.2rem;
+            }
+            .challenge-description {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-left">
+            <a href="index.html" class="nav-logo">DietApp</a>
+        </div>
+        <div class="nav-center">
+            <a href="index.html" class="nav-link active">홈</a>
+            <a href="my-challenges.html" class="nav-link">나의 챌린지</a>
+            <a href="social-feed.html" class="nav-link">소셜 피드</a>
+            <a href="profile.html" class="nav-link">프로필</a>
+        </div>
+        <div class="nav-right">
+            <span id="nav-username" class="nav-username"></span>
+            <button id="nav-logout-btn" class="nav-logout-btn" style="display:none;">로그아웃</button>
+            <a href="login.html" id="nav-login-link" class="nav-link" style="margin-right:10px; display:none;">로그인</a>
+            <a href="register.html" id="nav-register-link" class="nav-link" style="display:none;">회원가입</a>
+        </div>
+    </nav>
+
+    <div id="dashboard-container" class="container" style="display:none;">
+        <h1 class="title">안녕하세요, <span id="username-display"></span>님!</h1>
+        <p class="subtitle">오늘의 다이어트 현황을 확인하고 목표를 향해 나아가세요.</p>
+
+        <div class="progress-card">
+            <svg class="progress-ring">
+                <defs>
+                    <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle class="background" cx="100" cy="100" r="80"></circle>
+                <circle id="progress-circle" class="progress" cx="100" cy="100" r="80"></circle>
+                <text id="progress-text" x="50%" y="50%" text-anchor="middle" dy=".3em" class="progress-text">0%</text>
+            </svg>
+            <div id="calorie-info" style="font-size:1.1rem; color:#718096; font-weight:600;">
+                <span id="current-calories-display">0</span> / <span id="goal-calories-display">0</span> kcal
+                <br>
+                <span id="remaining-calories-display" style="font-size:0.9em; color:#a0aec0;">남은 칼로리: 0 kcal</span>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-title">오늘의 식단</div>
+                <div id="meals-today" class="card-value">0개</div>
+            </div>
+            <div class="card">
+                <div class="card-title">총 스탬프</div>
+                <div id="total-stamps" class="card-value">0개</div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button class="btn btn-primary" onclick="recordFood()">식단 기록하기</button>
+            <button class="btn btn-secondary" onclick="viewMyChallenges()">챌린지 목록 보기</button>
+            <button class="btn btn-secondary" onclick="viewSocialFeed()">소셜 피드 보기</button>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <input type="checkbox" id="togglePublicStatus" style="margin-right: 5px; transform: scale(1.2);">
+            <label for="togglePublicStatus" style="color: #2d3748; font-weight: 600;">내 식단 기록을 공개합니다.</label>
+            <p style="font-size: 0.85em; color: #718096; margin-top: 5px;">체크 시, 나의 식단 기록이 소셜 피드에 공유됩니다.</p>
+        </div>
+    </div>
+
+    <div id="login-prompt" class="login-prompt" style="display:none;">
+        <h1 class="title">다이어트 챌린지</h1>
+        <p class="subtitle">로그인하고 나만의 다이어트 여정을 시작하세요.</p>
+        <div class="button-container">
+            <a href="login.html" class="btn btn-primary">로그인</a>
+            <a href="register.html" class="btn btn-secondary">회원가입</a>
+        </div>
+    </div>
+
+    <script>
+        let currentChallengeId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNavBar(); // 새로운 내비게이션 바 렌더링 함수 호출
+            checkLoginStatus();
+            document.getElementById('togglePublicStatus').addEventListener('change', togglePublicStatus);
+        });
+
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                document.getElementById('dashboard-container').style.display = 'block';
+                document.getElementById('login-prompt').style.display = 'none';
+                loadDashboardData();
+            } else {
+                document.getElementById('dashboard-container').style.display = 'none';
+                document.getElementById('login-prompt').style.display = 'flex'; // flex로 변경
+            }
+        }
+
+        // 공통 fetch 함수: 토큰 자동 포함, 401/403 시 자동 로그아웃
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.log('토큰이 없습니다. 로그인 페이지로 이동합니다.');
+                window.location.href = 'login.html';
+                return null;
+            }
+            
+            const headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            const res = await fetch(url, { ...options, headers });
+            
+            if (res.status === 401 || res.status === 403) {
+                console.log('토큰이 만료되었습니다. 로그인 페이지로 이동합니다.');
+                localStorage.clear();
+                window.location.href = 'login.html';
+                return null;
+            }
+            
+            if (!res.ok) {
+                console.error('API 요청 실패:', res.status, res.statusText);
+                return null;
+            }
+            
+            return res.json();
+        }
+
+        async function loadDashboardData() {
+            const userId = localStorage.getItem('user_id');
+            const username = localStorage.getItem('username');
+            document.getElementById('username-display').textContent = username;
+
+            // 만료된 챌린지 처리 API 호출 (세션당 한 번만)
+            const lastProcessed = localStorage.getItem('last_expired_process');
+            const now = Date.now();
+            if (!lastProcessed || (now - parseInt(lastProcessed)) > 300000) { // 5분마다
+                await fetchWithAuth('/api/challenges/process_expired', { method: 'POST' });
+                localStorage.setItem('last_expired_process', now.toString());
+            }
+
+            // 1. 가장 최근 챌린지 정보 가져오기
+            const challengesData = await fetchWithAuth('/api/my-challenges');
+            if (challengesData && challengesData.success && challengesData.challenges.length > 0) {
+                const latestChallenge = challengesData.challenges[0];
+                currentChallengeId = latestChallenge.id;
+                console.log('Current Challenge ID:', currentChallengeId); // Debugging line
+
+                // 2. 해당 챌린지의 오늘 칼로리 정보 가져오기
+                const caloriesData = await fetchWithAuth(`/api/calories-today?challenge_id=${currentChallengeId}`);
+                if (caloriesData && caloriesData.success) {
+                    updateDashboardUI(caloriesData, latestChallenge);
+                }
+            } else {
+                // 진행중인 챌린지가 없을 경우
+                document.getElementById('progress-text').textContent = 'N/A';
+                document.getElementById('calorie-info').textContent = '진행중인 챌리지가 없습니다.';
+            }
+
+            // 3. 스탬프 개수 가져오기
+            const stampsData = await fetchWithAuth(`/api/stamps/count?user_id=${userId}`);
+            if (stampsData && stampsData.success) {
+                document.getElementById('total-stamps').textContent = `${stampsData.count}개`;
+            }
+
+            // 4. 사용자 is_public 상태 가져오기 및 토글 설정
+            const userData = await fetchWithAuth(`/api/users/${userId}`);
+            if (userData && userData.success) {
+                document.getElementById('togglePublicStatus').checked = userData.user.is_public;
+            }
+        }
+
+        function updateDashboardUI(caloriesData, challenge) {
+            const { total_calories, goal_calories, records_count } = caloriesData;
+            const percentage = goal_calories > 0 ? Math.min(Math.round((total_calories / goal_calories) * 100), 100) : 0;
+            const remainingCalories = Math.max(0, goal_calories - total_calories);
+
+            // 프로그레스 바 업데이트
+            const circle = document.getElementById('progress-circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (percentage / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            document.getElementById('progress-text').textContent = `${percentage}%`;
+
+            // 정보 텍스트 업데이트
+            document.getElementById('current-calories-display').textContent = total_calories;
+            document.getElementById('goal-calories-display').textContent = goal_calories;
+            document.getElementById('remaining-calories-display').textContent = `남은 칼로리: ${remainingCalories} kcal`;
+            document.getElementById('meals-today').textContent = `${records_count}개`;
+        }
+
+        function recordFood() {
+            if (currentChallengeId) {
+                window.location.href = `challenge-detail.html?challenge_id=${currentChallengeId}`;
+            } else {
+                alert('진행중인 챌린지가 없습니다. 먼저 챌린지를 시작해주세요.');
+                window.location.href = 'my-challenges.html';
+            }
+        }
+
+        function viewMyChallenges() {
+            window.location.href = 'my-challenges.html';
+        }
+
+        function viewSocialFeed() {
+            window.location.href = 'social-feed.html';
+        }
+
+        async function togglePublicStatus() {
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('user_id');
+            const isPublic = document.getElementById('togglePublicStatus').checked;
+
+            try {
+                const response = await fetch(`/api/users/${userId}/public_status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ is_public: isPublic })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('식단 공개 설정이 변경되었습니다.');
+                } else {
+                    alert('설정 변경 실패: ' + (data.error || '알 수 없는 오류'));
+                    // 실패 시 체크박스 상태 되돌리기
+                    document.getElementById('togglePublicStatus').checked = !isPublic;
+                }
+            } catch (error) {
+                alert('네트워크 오류 또는 서버 응답 문제: ' + error.message);
+                document.getElementById('togglePublicStatus').checked = !isPublic;
+            }
+        }
+
+        // 새로운 내비게이션 바 렌더링 및 로그인/로그아웃 상태 반영
+        function renderNavBar() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            const navUsername = document.getElementById('nav-username');
+            const navLogoutBtn = document.getElementById('nav-logout-btn');
+            const navLoginLink = document.getElementById('nav-login-link');
+            const navRegisterLink = document.getElementById('nav-register-link');
+
+            // 현재 페이지 경로에 따라 active 클래스 설정
+            const currentPath = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.main-nav .nav-link').forEach(link => {
+                const linkPath = link.getAttribute('href').split('/').pop();
+                // 루트 경로 (index.html) 처리
+                if (linkPath === currentPath || (currentPath === '' && linkPath === 'index.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            if (token && username) {
+                navUsername.textContent = `${username}님`;
+                navUsername.style.display = 'inline';
+                navLogoutBtn.style.display = 'inline-block';
+                navLoginLink.style.display = 'none';
+                navRegisterLink.style.display = 'none';
+                navLogoutBtn.onclick = () => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user_id');
+                    localStorage.removeItem('username');
+                    checkLoginStatus();
+                    renderNavBar(); // 로그아웃 후 내비게이션 바 업데이트
+                };
+            } else {
+                navUsername.style.display = 'none';
+                navLogoutBtn.style.display = 'none';
+                navLoginLink.style.display = 'inline';
+                navRegisterLink.style.display = 'inline';
+            }
+        }
+    </script>
+</body>
+</html>

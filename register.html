@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 다이어트 챌린지 앱</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .register-container {
+            background: rgba(255,255,255,0.97);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(102,126,234,0.15);
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .register-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 22px;
+            text-align: left;
+        }
+        .form-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 7px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            padding: 13px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.2s;
+            background: #fff;
+        }
+        .form-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .register-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .register-btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .form-message {
+            margin-top: 18px;
+            font-size: 1rem;
+            color: #e53e3e;
+        }
+        .login-link {
+            margin-top: 20px;
+            display: block;
+            color: #667eea;
+            text-decoration: underline;
+            font-size: 0.98rem;
+        }
+        @media (max-width: 480px) {
+            .register-container {
+                padding: 25px 10px;
+            }
+            .register-title {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-title">회원가입</div>
+        <form id="registerForm" autocomplete="off">
+            <div class="form-group">
+                <label class="form-label" for="username">사용자명</label>
+                <input class="form-input" type="text" id="username" name="username" required maxlength="30" placeholder="닉네임 또는 이름">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">이메일</label>
+                <input class="form-input" type="email" id="email" name="email" required maxlength="50" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">비밀번호</label>
+                <input class="form-input" type="password" id="password" name="password" required minlength="6" maxlength="32" placeholder="비밀번호 (6자 이상)">
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; margin-top: -10px;">
+                <input type="checkbox" id="isPublic" name="isPublic" style="margin-right: 8px; transform: scale(1.2);">
+                <label class="form-label" for="isPublic" style="margin-bottom: 0;">내 식단 기록을 공개합니다.</label>
+            </div>
+            <p style="font-size: 0.8em; color: #718096; text-align: left; margin-top: 5px; margin-bottom: 20px;">체크 시, 나의 식단 기록이 소셜 피드에 공유됩니다.</p>
+            <button type="submit" class="register-btn">회원가입</button>
+            <div class="form-message" id="formMessage"></div>
+        </form>
+        <a href="login.html" class="login-link">이미 계정이 있으신가요? 로그인</a>
+    </div>
+    <script>
+        document.getElementById('registerForm').onsubmit = function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const isPublic = document.getElementById('isPublic').checked; // isPublic 값 가져오기
+            const msg = document.getElementById('formMessage');
+            const registerBtn = document.querySelector('.register-btn');
+
+            msg.textContent = '';
+            if (!username || !email || !password) {
+                msg.textContent = '모든 항목을 입력해 주세요.';
+                return;
+            }
+
+            registerBtn.disabled = true;
+            registerBtn.textContent = '가입 중...';
+
+            fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password, is_public: isPublic })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    msg.style.color = '#38a169';
+                    msg.textContent = '회원가입이 완료되었습니다! 로그인 해주세요.';
+                    setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+                } else {
+                    msg.style.color = '#e53e3e';
+                    msg.textContent = data.error || '회원가입 실패';
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = '회원가입';
+                }
+            })
+            .catch(() => {
+                msg.style.color = '#e53e3e';
+                msg.textContent = '서버 오류가 발생했습니다.';
+                registerBtn.disabled = false;
+                registerBtn.textContent = '회원가입';
+            });
+        };
+    </script>
+</body>
+</html>

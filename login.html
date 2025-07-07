@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - 다이어트 챌린지 앱</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            background: rgba(255,255,255,0.97);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(102,126,234,0.15);
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .login-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 22px;
+            text-align: left;
+        }
+        .form-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 7px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            padding: 13px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.2s;
+            background: #fff;
+        }
+        .form-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .login-btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .form-message {
+            margin-top: 18px;
+            font-size: 1rem;
+            color: #e53e3e;
+        }
+        .register-link {
+            margin-top: 20px;
+            display: block;
+            color: #667eea;
+            text-decoration: underline;
+            font-size: 0.98rem;
+        }
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 25px 10px;
+            }
+            .login-title {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-title">로그인</div>
+        <form id="loginForm" autocomplete="off">
+            <div class="form-group">
+                <label class="form-label" for="email">이메일</label>
+                <input class="form-input" type="email" id="email" name="email" required maxlength="50" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">비밀번호</label>
+                <input class="form-input" type="password" id="password" name="password" required minlength="6" maxlength="32" placeholder="비밀번호">
+            </div>
+            <button type="submit" class="login-btn">로그인</button>
+            <div class="form-message" id="formMessage"></div>
+        </form>
+        <a href="register.html" class="register-link">아직 계정이 없으신가요? 회원가입</a>
+    </div>
+    <script>
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('formMessage');
+            const loginBtn = document.querySelector('.login-btn');
+
+            msg.textContent = '';
+            if (!email || !password) {
+                msg.textContent = '이메일과 비밀번호를 입력해 주세요.';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = '로그인 중...';
+
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.token) {
+                    msg.style.color = '#38a169';
+                    msg.textContent = '로그인 성공! 이동 중...';
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user_id', data.user_id);
+                    localStorage.setItem('username', data.username);
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+                } else {
+                    msg.style.color = '#e53e3e';
+                    msg.textContent = data.error || '로그인 실패';
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '로그인';
+                }
+            })
+            .catch(() => {
+                msg.style.color = '#e53e3e';
+                msg.textContent = '서버 오류가 발생했습니다.';
+                loginBtn.disabled = false;
+                loginBtn.textContent = '로그인';
+            });
+        };
+    </script>
+</body>
+</html>

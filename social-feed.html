@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소셜 피드 - 다이어트 챌린지 앱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 80px; /* 내비게이션 바 높이만큼 패딩 추가 */
+        }
+
+        /* 새로운 내비게이션 바 스타일 */
+        .main-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            position: fixed; /* 상단에 고정 */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .nav-left {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-link {
+            color: #2d3748;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 5px 0;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            color: #667eea;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .nav-right {
+            flex-grow: 1;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .nav-username {
+            color: #2d3748;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+
+        .nav-logout-btn {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-logout-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+        }
+
+        /* 기존 컨테이너 및 기타 스타일 */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* 피드 섹션 */
+        .feed-section {
+            margin-top: 30px;
+        }
+
+        .feed-item {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feed-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feed-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .post-time {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .feed-content {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .feed-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0aec0;
+            font-size: 1.5rem;
+        }
+
+        .feed-details {
+            flex: 1;
+        }
+
+        .food-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .food-calories {
+            color: #48bb78;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .food-comment {
+            color: #718096;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .placeholder-feed {
+            text-align: center;
+            color: #a0aec0;
+            padding: 40px 20px;
+        }
+
+        .placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* 애니메이션 효과 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .main-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 15px;
+            }
+            .nav-center {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 10px;
+                width: 100%;
+                align-items: flex-start;
+            }
+            .nav-right {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .nav-username {
+                margin-right: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+
+            .section {
+                padding: 25px 20px;
+                margin-bottom: 15px;
+            }
+
+            .section-title {
+                font-size: 1.3rem;
+            }
+
+            .current-calories {
+                font-size: 2rem;
+            }
+
+            .upload-area {
+                padding: 30px 15px;
+            }
+
+            .upload-icon {
+                font-size: 2.5rem;
+            }
+
+            .feed-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .feed-image {
+                width: 100%;
+                height: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 1.3rem;
+            }
+
+            .section-title {
+                font-size: 1.2rem;
+            }
+
+            .current-calories {
+                font-size: 1.8rem;
+            }
+
+            .upload-area {
+                padding: 25px 15px;
+            }
+
+            .upload-text {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-left">
+            <a href="index.html" class="nav-logo">DietApp</a>
+        </div>
+        <div class="nav-center">
+            <a href="index.html" class="nav-link">홈</a>
+            <a href="my-challenges.html" class="nav-link">나의 챌린지</a>
+            <a href="social-feed.html" class="nav-link active">소셜 피드</a>
+            <a href="profile.html" class="nav-link">프로필</a>
+        </div>
+        <div class="nav-right">
+            <span id="nav-username" class="nav-username"></span>
+            <button id="nav-logout-btn" class="nav-logout-btn" style="display:none;">로그아웃</button>
+            <a href="login.html" id="nav-login-link" class="nav-link" style="margin-right:10px; display:none;">로그인</a>
+            <a href="register.html" id="nav-register-link" class="nav-link" style="display:none;">회원가입</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="section feed-section">
+            <h2 class="section-title">모두의 식단 기록</h2>
+            <div id="social-feed-container" class="feed-container">
+                <!-- 공개된 음식 기록이 여기에 동적으로 추가됩니다 -->
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            renderNavBar(); // 내비게이션 바 렌더링
+            loadSocialFeed();
+        });
+
+        function goBack() {
+            window.location.href = 'index.html'; // 뒤로 가기 버튼을 홈으로 연결
+        }
+
+        // 공통 fetch 함수: 토큰 자동 포함, 401/403 시 자동 로그아웃
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401 || res.status === 403) {
+                alert('로그인 세션이 만료되었거나 권한이 없습니다. 다시 로그인 해주세요.');
+                localStorage.clear();
+                window.location.href = 'login.html';
+                return null;
+            }
+            return res.json();
+        }
+
+        async function loadSocialFeed() {
+            const data = await fetchWithAuth('/api/food-records/public');
+            if (data && data.success && data.records) {
+                renderSocialFeed(data.records);
+            } else {
+                alert('소셜 피드를 불러오는데 실패했습니다: ' + (data && data.error ? data.error : '알 수 없는 오류'));
+            }
+        }
+
+        function renderSocialFeed(records) {
+            const feedContainer = document.getElementById('social-feed-container');
+            if (records.length === 0) {
+                feedContainer.innerHTML = '<p style="text-align:center; color:#a0aec0;">아직 공개된 식단 기록이 없습니다.</p>';
+                return;
+            }
+
+            feedContainer.innerHTML = records.map(record => {
+                const usernameInitial = record.username ? record.username.charAt(0).toUpperCase() : '?';
+                const imageUrl = record.image_path ? `/uploads/${record.image_path}` : '';
+                const imageHtml = imageUrl ? `<img src="${imageUrl}" class="feed-image" alt="음식 사진">` : `<div class="feed-image">🍽️</div>`;
+                const aiAdvice = record.advice || 'AI 조언 준비 중...';
+
+                return `
+                    <div class="feed-item">
+                        <div class="feed-header">
+                            <div class="user-avatar">${usernameInitial}</div>
+                            <div class="user-info">
+                                <div class="user-name">${record.username || '익명'}</div>
+                                <div class="post-time">${new Date(record.recorded_at).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        <div class="feed-content">
+                            ${imageHtml}
+                            <div class="feed-details">
+                                <div class="food-name">${record.food_name}</div>
+                                <div class="food-calories">${record.calories} kcal (${record.weight}g)</div>
+                                <div class="food-comment" style="font-size:0.9em; color:#718096; margin-top: 8px; padding: 8px; background: #f0fdf4; border-radius: 8px;"><b>AI 조언:</b> ${aiAdvice}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 내비게이션 바 렌더링 (index.html에서 복사)
+        function renderNavBar() {
+            const navHtml = `
+                <nav class="main-nav">
+                    <div class="nav-left">
+                        <a href="index.html" class="nav-logo">DietApp</a>
+                    </div>
+                    <div class="nav-center">
+                        <a href="index.html" class="nav-link">홈</a>
+                        <a href="my-challenges.html" class="nav-link">나의 챌린지</a>
+                        <a href="social-feed.html" class="nav-link">소셜 피드</a>
+                        <a href="profile.html" class="nav-link">프로필</a>
+                    </div>
+                    <div class="nav-right">
+                        <span id="nav-username" class="nav-username"></span>
+                        <button id="nav-logout-btn" class="nav-logout-btn" style="display:none;">로그아웃</button>
+                        <a href="login.html" id="nav-login-link" class="nav-link" style="margin-right:10px; display:none;">로그인</a>
+                        <a href="register.html" id="nav-register-link" class="nav-link" style="display:none;">회원가입</a>
+                    </div>
+                </nav>
+            `;
+            document.body.insertAdjacentHTML('afterbegin', navHtml);
+
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            const navUsername = document.getElementById('nav-username');
+            const navLogoutBtn = document.getElementById('nav-logout-btn');
+            const navLoginLink = document.getElementById('nav-login-link');
+            const navRegisterLink = document.getElementById('nav-register-link');
+
+            // 현재 페이지 경로에 따라 active 클래스 설정
+            const currentPath = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.main-nav .nav-link').forEach(link => {
+                const linkPath = link.getAttribute('href').split('/').pop();
+                if (linkPath === currentPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            if (token && username) {
+                navUsername.textContent = `${username}님`;
+                navUsername.style.display = 'inline';
+                navLogoutBtn.style.display = 'inline-block';
+                navLoginLink.style.display = 'none';
+                navRegisterLink.style.display = 'none';
+                navLogoutBtn.onclick = () => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user_id');
+                    localStorage.removeItem('username');
+                    window.location.href = 'login.html'; 
+                };
+            } else {
+                navUsername.style.display = 'none';
+                navLogoutBtn.style.display = 'none';
+                navLoginLink.style.display = 'inline';
+                navRegisterLink.style.display = 'inline';
+            }
+        }
+    </script>
+</body>
+</html>

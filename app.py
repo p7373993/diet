@@ -17,9 +17,7 @@ import pandas as pd
 
 # Flask 앱 초기화
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///diet_challenge.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_object('config.Config')  # config.py 사용
 
 # CORS 설정 (프론트엔드와 통신)
 CORS(app)
